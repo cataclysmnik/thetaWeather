@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: 'nextWeather',
+  title: 'thetaWeather',
   description: 'A weather app built with Next.js and Tailwind CSS',
 };
 
