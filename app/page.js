@@ -76,17 +76,58 @@ export default function Home() {
     }
   }, [isDarkMode]);
 
+  // Fetch weather for the current location on initial render
+  useEffect(() => {
+    const fetchCurrentLocationWeather = async () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+            try {
+              setError('');
+              const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}&units=metric`;
+              const response = await fetch(url);
+              if (!response.ok) {
+                throw new Error('Failed to fetch weather for current location');
+              }
+              const currentWeather = await response.json();
+              const forecastData = await fetchForecast(currentWeather.name);
+
+              // Fetch air quality
+              const airQualityData = await fetchAirQuality(latitude, longitude);
+
+              setWeather({ ...currentWeather, airQuality: airQualityData });
+              setForecast(forecastData);
+            } catch (err) {
+              setError('Could not fetch weather for your location');
+              setWeather(null);
+              setForecast([]);
+            }
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+            setError('Location permission denied or unavailable');
+          }
+        );
+      } else {
+        setError('Geolocation not supported by your browser');
+      }
+    };
+
+    fetchCurrentLocationWeather();
+  }, []);
+
   const handleSearch = async (e) => {
     e.preventDefault();
     try {
       setError('');
       const currentWeather = await fetchWeather(city);
       const forecastData = await fetchForecast(city);
-  
+
       // Fetch air quality using the latitude and longitude
       const { coord } = currentWeather;
       const airQualityData = await fetchAirQuality(coord.lat, coord.lon);
-  
+
       setWeather({ ...currentWeather, airQuality: airQualityData });
       setForecast(forecastData);
     } catch (err) {
