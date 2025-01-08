@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 async function fetchWeather(city) {
-  const apiKey = '3fff7f43a0c2b97db42e523534b8554d'; // Replace with your OpenWeatherMap API key
+  const apiKey = '3fff7f43a0c2b97db42e523534b8554d';
   const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
   const response = await fetch(url);
   if (!response.ok) {
@@ -11,6 +11,17 @@ async function fetchWeather(city) {
   }
   return response.json();
 }
+
+async function fetchAirQuality(lat, lon) {
+  const apiKey = '3fff7f43a0c2b97db42e523534b8554d';
+  const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error('Failed to fetch air quality data');
+  }
+  return response.json();
+}
+
 
 async function fetchForecast(city) {
   const apiKey = '3fff7f43a0c2b97db42e523534b8554d';
@@ -71,7 +82,12 @@ export default function Home() {
       setError('');
       const currentWeather = await fetchWeather(city);
       const forecastData = await fetchForecast(city);
-      setWeather(currentWeather);
+  
+      // Fetch air quality using the latitude and longitude
+      const { coord } = currentWeather;
+      const airQualityData = await fetchAirQuality(coord.lat, coord.lon);
+  
+      setWeather({ ...currentWeather, airQuality: airQualityData });
       setForecast(forecastData);
     } catch (err) {
       setError('City not found');
@@ -79,6 +95,7 @@ export default function Home() {
       setForecast([]);
     }
   };
+  
 
   // Determine dynamic class for background
   const getWeatherBackgroundClass = (condition) => {
@@ -146,52 +163,82 @@ export default function Home() {
 
       {/* Weather Card */}
       {weather && (
-        <div
-        className={`mt-16 w-full max-w-md p-6 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-6 ${getWeatherBackgroundClass(
-          weather.weather[0].main
-        )} bg-cover bg-center h-[200px] relative`}
-      >
-        {/* Semi-transparent overlay */}
-        <div className="absolute inset-0 bg-black opacity-40 rounded-lg"></div>
-      
-        <div className="flex-1 relative z-10">
-  <h4
-    className="text-xl sm:text-2xl font-semibold text-white"
-    style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
-  >
-    {weather.name}
-  </h4>
-  <div className="flex items-center space-x-4 mt-2">
-    {/* Main Temperature */}
-    <p
-      className="text-3xl font-bold text-white"
-      style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
-    >
-      {weather.main.temp}°C
-    </p>
-    {/* Min/Max Temperatures */}
+  <>
     <div
-      className="text-sm text-white"
-      style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
+      className={`mt-8 w-full max-w-md p-6 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-6 ${getWeatherBackgroundClass(
+        weather.weather[0].main
+      )} bg-cover bg-center h-[200px] relative`}
     >
-      {weather.main.temp_min}°C / {weather.main.temp_max}°C
-    </div>
-  </div>
-  <p
-    className="text-lg text-white capitalize mt-2"
-    style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
-  >
-    {weather.weather[0].description}.
-  </p>
-</div>
+      {/* Semi-transparent overlay */}
+      <div className="absolute inset-0 bg-black opacity-40 rounded-lg"></div>
 
+      <div className="flex-1 relative z-10">
+        <h4
+          className="text-xl sm:text-2xl font-semibold text-white"
+          style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
+        >
+          {weather.name}
+        </h4>
+        <div className="flex items-center space-x-4 mt-2">
+          {/* Main Temperature */}
+          <p
+            className="text-3xl font-bold text-white"
+            style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
+          >
+            {weather.main.temp.toFixed(1)}°C
+          </p>
+          {/* Min/Max Temperatures */}
+          <div
+            className="text-sm text-white"
+            style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
+          >
+            {weather.main.temp_min.toFixed(1)}°C / {weather.main.temp_max.toFixed(1)}°C
+          </div>
+        </div>
+        <p
+          className="text-lg text-white capitalize mt-2"
+          style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
+        >
+          {weather.weather[0].description}.
+        </p>
       </div>
-      
-      )}
+    </div>
+
+    {/* Additional Weather Details Card */}
+    <div className="mt-4 w-full max-w-md px-12 py-6 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-gray-200 dark:bg-gray-800">
+      <div className="flex flex-col space-y-2">
+        {/* Feels Like */}
+        <div className="flex justify-between text-gray-800 dark:text-gray-200">
+          <span>Feels Like:</span>
+          <span>{weather.main.feels_like.toFixed(1)}°C</span>
+        </div>
+        {/* Humidity */}
+        <div className="flex justify-between text-gray-800 dark:text-gray-200">
+          <span>Humidity:</span>
+          <span>{weather.main.humidity}%</span>
+        </div>
+        {/* Wind Speed */}
+        <div className="flex justify-between text-gray-800 dark:text-gray-200">
+          <span>Wind Speed:</span>
+          <span>{weather.wind.speed} m/s</span>
+        </div>
+        {/* Air Quality*/}
+        <div className="flex justify-between text-gray-800 dark:text-gray-200">
+          <span>Air Quality:</span>
+          <span>
+            {weather.airQuality
+              ? `AQI ${weather.airQuality.list[0].main.aqi}`
+              : 'Loading...'}
+          </span>
+        </div>
+      </div>
+    </div>
+  </>
+)}
 
       {/* 5-Day Forecast */}
       {forecast.length > 0 && (
-        <div className="mt-8 w-full max-w-md p-6 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md">
+        <div className="mt-4 w-full max-w-md p-6 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md">
           <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
             5-Day Forecast
           </h3>
