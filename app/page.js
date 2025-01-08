@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 async function fetchWeather(city) {
-  const apiKey = '3fff7f43a0c2b97db42e523534b8554d';
+  const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
   const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
   const response = await fetch(url);
   if (!response.ok) {
@@ -13,7 +13,7 @@ async function fetchWeather(city) {
 }
 
 async function fetchAirQuality(lat, lon) {
-  const apiKey = '3fff7f43a0c2b97db42e523534b8554d';
+  const apiKey = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
   const url = `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`;
   const response = await fetch(url);
   if (!response.ok) {
