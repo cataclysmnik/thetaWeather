@@ -19,3 +19,18 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge, and Firefox */
+html {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}

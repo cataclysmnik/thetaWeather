@@ -22,7 +22,6 @@ async function fetchAirQuality(lat, lon) {
   return response.json();
 }
 
-
 async function fetchForecast(city) {
   const apiKey = '3fff7f43a0c2b97db42e523534b8554d';
   const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
@@ -60,13 +59,13 @@ async function fetchForecast(city) {
   return dailyForecast.slice(0, 5); // Limit to the next 5 days
 }
 
-
 export default function Home() {
   const [city, setCity] = useState('');
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState([]);
   const [error, setError] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [activeTab, setActiveTab] = useState('weather'); // State for active tab
 
   useEffect(() => {
     if (isDarkMode) {
@@ -136,7 +135,6 @@ export default function Home() {
       setForecast([]);
     }
   };
-  
 
   // Determine dynamic class for background
   const getWeatherBackgroundClass = (condition) => {
@@ -162,27 +160,58 @@ export default function Home() {
       case 'fog':
         return 'bg-misty';
       case 'tornado':
-        return 'bg-tornado'
-        
+        return 'bg-tornado';
       default:
         return 'bg-default';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col items-center p-4 sm:p-6 lg:p-8">
-      {/* Toggle Button */}
-      <button
-        onClick={() => setIsDarkMode(!isDarkMode)}
-        className="absolute top-4 right-4 px-3 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-lg text-sm sm:text-base"
-      >
-        {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-      </button>
-
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col items-center p-4 sm:p-6 lg:p-8 pb-20 sm:pb-4">
+      {/* Top Bar (Desktop) */}
+      <div className="w-full max-w-4xl flex justify-between items-center mb-4">
+        {/* Logo */}
+        <div className="text-xl font-bold text-gray-800 dark:text-gray-200">
+          thetaWeather
+        </div>
+  
+        {/* Tabs (Desktop) */}
+        <div className="hidden sm:flex space-x-4">
+          <button
+            onClick={() => setActiveTab('weather')}
+            className={`px-4 py-2 text-sm font-medium hover:scale-105 transition-transform duration-200 ${
+              activeTab === 'weather'
+                ? 'text-blue-600 dark:text-blue-400 font-semibold'
+                : 'text-gray-700 dark:text-gray-300'
+            }`}
+          >
+            Weather
+          </button>
+          <button
+            onClick={() => setActiveTab('solarStorm')}
+            className={`px-4 py-2 text-sm font-medium hover:scale-105 transition-transform duration-200 ${
+              activeTab === 'solarStorm'
+                ? 'text-blue-600 dark:text-blue-400 font-semibold'
+                : 'text-gray-700 dark:text-gray-300'
+            }`}
+          >
+            Solar Storm
+          </button>
+        </div>
+  
+        {/* Dark Mode Toggle */}
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          className="px-3 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-lg text-sm sm:text-base hover:scale-105 transition-transform duration-200"
+        >
+          {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+        </button>
+      </div>
+  
       {/* Search Form */}
       <form
         onSubmit={handleSearch}
-        className="w-full max-w-md flex flex-col sm:flex-row items-center mt-8 space-y-4 sm:space-y-0 sm:space-x-4"
+        className="w-full max-w-md flex flex-col sm:flex-row items-center mt-0 space-y-4 sm:space-y-0 sm:space-x-4"
       >
         <input
           type="text"
@@ -193,123 +222,166 @@ export default function Home() {
         />
         <button
           type="submit"
-          className="w-full sm:w-auto px-6 py-2 bg-gray-700 dark:bg-gray-300 text-gray-100 dark:text-gray-800 hover:bg-gray-800 dark:hover:bg-gray-400 rounded-lg shadow-md text-sm tracking-wide transition-all duration-200"
+          className="w-full sm:w-auto px-6 py-2 bg-gray-700 dark:bg-gray-300 text-gray-100 dark:text-gray-800 hover:bg-gray-800 dark:hover:bg-gray-400 rounded-lg shadow-md text-sm tracking-wide transition-all duration-200 hover:scale-105"
         >
           Search
         </button>
       </form>
-
+  
       {/* Error Message */}
       {error && <p className="text-sm text-red-500 dark:text-red-400 mt-6">{error}</p>}
-
-      {/* Weather Card */}
-      {weather && (
-  <>
-    <div
-      className={`mt-8 w-full max-w-md p-6 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-6 ${getWeatherBackgroundClass(
-        weather.weather[0].main
-      )} bg-cover bg-center h-[200px] relative`}
-    >
-      {/* Semi-transparent overlay */}
-      <div className="absolute inset-0 bg-black opacity-40 rounded-lg"></div>
-
-      <div className="flex-1 relative z-10">
-        <h4
-          className="text-xl sm:text-2xl font-semibold text-white"
-          style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
-        >
-          {weather.name}
-        </h4>
-        <div className="flex items-center space-x-4 mt-2">
-          {/* Main Temperature */}
-          <p
-            className="text-3xl font-bold text-white"
-            style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
-          >
-            {weather.main.temp.toFixed(1)}°C
-          </p>
-          {/* Min/Max Temperatures */}
-          <div
-            className="text-sm text-white"
-            style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
-          >
-            {weather.main.temp_min.toFixed(1)}°C / {weather.main.temp_max.toFixed(1)}°C
-          </div>
-        </div>
-        <p
-          className="text-lg text-white capitalize mt-2"
-          style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
-        >
-          {weather.weather[0].description}.
-        </p>
-      </div>
-    </div>
-
-    {/* Additional Weather Details Card */}
-    <div className="mt-4 w-full max-w-md px-12 py-6 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-gray-200 dark:bg-gray-800">
-      <div className="flex flex-col space-y-2">
-        {/* Feels Like */}
-        <div className="flex justify-between text-gray-800 dark:text-gray-200">
-          <span>Feels Like:</span>
-          <span>{weather.main.feels_like.toFixed(1)}°C</span>
-        </div>
-        {/* Humidity */}
-        <div className="flex justify-between text-gray-800 dark:text-gray-200">
-          <span>Humidity:</span>
-          <span>{weather.main.humidity}%</span>
-        </div>
-        {/* Wind Speed */}
-        <div className="flex justify-between text-gray-800 dark:text-gray-200">
-          <span>Wind Speed:</span>
-          <span>{weather.wind.speed} m/s</span>
-        </div>
-        {/* Air Quality*/}
-        <div className="flex justify-between text-gray-800 dark:text-gray-200">
-          <span>Air Quality:</span>
-          <span>
-            {weather.airQuality
-              ? `AQI ${weather.airQuality.list[0].main.aqi}`
-              : 'Loading...'}
-          </span>
-        </div>
-      </div>
-    </div>
-  </>
-)}
-
-      {/* 5-Day Forecast */}
-      {forecast.length > 0 && (
-        <div className="mt-4 w-full max-w-md p-6 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md">
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-            5-Day Forecast
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
-            {forecast.map((day, index) => (
+  
+      {/* Weather and Forecast Content */}
+      {activeTab === 'weather' && (
+        <>
+          {/* Weather Card */}
+          {weather && (
+            <>
               <div
-              key={index}
-              className="flex flex-row items-center justify-between p-2 bg-gray-200 dark:bg-gray-700 rounded-md sm:flex-col"
-            >
-              <img
-                src={`https://openweathermap.org/img/wn/${day.icon}@2x.png`}
-                alt="Weather Icon"
-                className="w-12 h-12 object-contain"
-              />
-              <p className="text-sm font-medium text-gray-800 dark:text-gray-200 ml-2 sm:ml-0">
-                {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
-              </p>
-              <div className="flex flex-col items-end ml-2 sm:ml-0 pr-1">
-                <p className="text-sm text-gray-800 dark:text-gray-200">
-                  {day.maxTemp?.toFixed(1) ?? 'N/A'}°C
-                </p>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {day.minTemp?.toFixed(1) ?? 'N/A'}°C
-                </p>
+                className={`mt-8 w-full max-w-md p-6 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-6 ${getWeatherBackgroundClass(
+                  weather.weather[0].main
+                )} bg-cover bg-center h-[200px] relative transition-transform duration-200`}
+              >
+                {/* Semi-transparent overlay */}
+                <div className="absolute inset-0 bg-black opacity-40 rounded-lg"></div>
+  
+                <div className="flex-1 relative z-10">
+                  <h4
+                    className="text-xl sm:text-2xl font-semibold text-white"
+                    style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
+                  >
+                    {weather.name}
+                  </h4>
+                  <div className="flex items-center space-x-4 mt-2">
+                    {/* Main Temperature */}
+                    <p
+                      className="text-3xl font-bold text-white"
+                      style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
+                    >
+                      {weather.main.temp.toFixed(1)}°C
+                    </p>
+                    {/* Min/Max Temperatures */}
+                    <div
+                      className="text-sm text-white"
+                      style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
+                    >
+                      {weather.main.temp_min.toFixed(1)}°C / {weather.main.temp_max.toFixed(1)}°C
+                    </div>
+                  </div>
+                  <p
+                    className="text-lg text-white capitalize mt-2"
+                    style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.6)' }}
+                  >
+                    {weather.weather[0].description}.
+                  </p>
+                </div>
+              </div>
+  
+              {/* Additional Weather Details Card */}
+              <div className="mt-4 w-full max-w-md px-12 py-6 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-gray-200 dark:bg-gray-800 transition-transform duration-200">
+                <div className="flex flex-col space-y-2">
+                  {/* Feels Like */}
+                  <div className="flex justify-between text-gray-800 dark:text-gray-200">
+                    <span>Feels Like:</span>
+                    <span>{weather.main.feels_like.toFixed(1)}°C</span>
+                  </div>
+                  {/* Humidity */}
+                  <div className="flex justify-between text-gray-800 dark:text-gray-200">
+                    <span>Humidity:</span>
+                    <span>{weather.main.humidity}%</span>
+                  </div>
+                  {/* Wind Speed */}
+                  <div className="flex justify-between text-gray-800 dark:text-gray-200">
+                    <span>Wind Speed:</span>
+                    <span>{weather.wind.speed} m/s</span>
+                  </div>
+                  {/* Air Quality*/}
+                  <div className="flex justify-between text-gray-800 dark:text-gray-200">
+                    <span>Air Quality:</span>
+                    <span>
+                      {weather.airQuality
+                        ? `AQI ${weather.airQuality.list[0].main.aqi}`
+                        : 'Loading...'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+  
+          {/* 5-Day Forecast */}
+          {forecast.length > 0 && (
+            <div className="mt-4 w-full max-w-md p-6 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                5-Day Forecast
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                {forecast.map((day, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-row items-center justify-between p-2 bg-gray-200 dark:bg-gray-700 rounded-md sm:flex-col hover:scale-105 transition-transform duration-200"
+                  >
+                    <img
+                      src={`https://openweathermap.org/img/wn/${day.icon}@2x.png`}
+                      alt="Weather Icon"
+                      className="w-12 h-12 object-contain"
+                    />
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 ml-2 sm:ml-0">
+                      {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                    </p>
+                    <div className="flex flex-col items-end ml-2 sm:ml-0 pr-1">
+                      <p className="text-sm text-gray-800 dark:text-gray-200">
+                        {day.maxTemp?.toFixed(1) ?? 'N/A'}°C
+                      </p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        {day.minTemp?.toFixed(1) ?? 'N/A'}°C
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            ))}
-          </div>
+          )}
+        </>
+      )}
+  
+      {/* Solar Storm View */}
+      {activeTab === 'solarStorm' && (
+        <div className="mt-8 w-full max-w-md p-6 border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-gray-200 dark:bg-gray-800 hover:scale-105 transition-transform duration-200">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            Upcoming Solar Storm
+          </h3>
+          <p className="text-gray-800 dark:text-gray-200">
+            Solar storm data will be displayed here.
+          </p>
         </div>
       )}
+  
+      {/* Bottom Tabs (Mobile) */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gray-200 dark:bg-gray-800 border-t border-gray-300 dark:border-gray-700 sm:hidden">
+        <div className="flex justify-around p-2">
+          <button
+            onClick={() => setActiveTab('weather')}
+            className={`flex-1 py-2 px-4 text-center hover:scale-105 transition-transform duration-200 ${
+              activeTab === 'weather'
+                ? 'text-blue-600 dark:text-blue-400 font-semibold'
+                : 'text-gray-700 dark:text-gray-300'
+            }`}
+          >
+            Weather
+          </button>
+          <button
+            onClick={() => setActiveTab('solarStorm')}
+            className={`flex-1 py-2 px-4 text-center hover:scale-105 transition-transform duration-200 ${
+              activeTab === 'solarStorm'
+                ? 'text-blue-600 dark:text-blue-400 font-semibold'
+                : 'text-gray-700 dark:text-gray-300'
+            }`}
+          >
+            Solar Storm
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
